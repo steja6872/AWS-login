@@ -1,0 +1,14 @@
+name: AWS-Login-Sample
+on: [push]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_CREDS }}
+        aws-secret-access-key: ${{ secrets.AWS_CREDS }}
+        aws-region: us-east-1  # Change this to your preferred AWS region
