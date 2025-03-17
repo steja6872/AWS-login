@@ -14,9 +14,4 @@ jobs:
 
       - name: Launch EC2 Instance
         run: |
-          aws ec2 run-instances \
-            --image-id ami-0f96c63e39f9144bc \ 
-            --count 1 \
-            --instance-type t2.micro \
-            --key-name MyKeyPair.pem \ 
-            --security-groups default
+          aws ec2 run-instances \ --image-id ami-0f96c63e39f9144bc \ --count 1 \ --instance-type t2.micro \ --key-name MyKeyPair.pem \ --security-groups default
