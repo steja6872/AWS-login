@@ -1,0 +1,31 @@
+name: Stop-and-Terminate-EC2-Instance
+on: [push]
+
+jobs:
+  manage-instance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1  # Change region if needed
+
+      - name: Stop EC2 Instance
+        run: aws ec2 stop-instances --instance-ids i-02b336bfe349125a5
+      
+      - name: Wait for EC2 to Stop
+        run: |
+          while true; do
+            STATUS=$(aws ec2 describe-instances --instance-ids i-02b336bfe349125a5 --query "Reservations[*].Instances[*].State.Name" --output text)
+            echo "Current State: $STATUS"
+            if [ "$STATUS" == "stopped" ]; then
+              echo "Instance has stopped."
+              break
+            fi
+            sleep 10
+          done
+
+      - name: Terminate EC2 Instance
+        run: aws ec2 terminate-instances --instance-ids i-02b336bfe349125a5
