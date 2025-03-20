@@ -4,6 +4,9 @@ on: [push]
 jobs:
   create-s3:
     runs-on: ubuntu-latest
+    outputs:
+      s3_status: ${{ steps.s3_creation.outputs.status }}  # Save status as output
+      bucket_name: ${{ steps.s3_creation.outputs.bucket }} # Save bucket name
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -17,18 +20,29 @@ jobs:
 
       - name: Create S3 Bucket
         id: s3_creation
-        run: BUCKET_NAME="my-unique-4bucket-$RANDOM" && echo "Creating S3 bucket:$BUCKET_NAME" && if aws s3api create-bucket --bucket "$BUCKET_NAME" --region us-east-1; then echo "S3_BUCKET_NAME=$BUCKET_NAME" >> $GITHUB_ENV && echo "status=success" >> $GITHUB_ENV;  else  echo "status=failure" >> $GITHUB_ENV;  fi
+        run: |
+          BUCKET_NAME="my-2nd-trail-unique-bucket-$RANDOM"
+          echo "Creating S3 bucket: $BUCKET_NAME"
+          if aws s3api create-bucket --bucket "$BUCKET_NAME" --region us-east-1; then
+            echo "S3_BUCKET_NAME=$BUCKET_NAME" >> $GITHUB_ENV
+            echo "status=success" >> $GITHUB_ENV
+            echo "status=success" >> "$GITHUB_OUTPUT"
+            echo "bucket=$BUCKET_NAME" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=failure" >> $GITHUB_ENV
+            echo "status=failure" >> "$GITHUB_OUTPUT"
+          fi
 
   upload-artifact:
     runs-on: ubuntu-latest
-    needs: create-s3  # This job runs only if create-s3 is successful
+    needs: create-s3  # Depends on create-s3 job
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Create Artifact with S3 Status
         run: |
-          if [[ "${{ env.status }}" == "success" ]]; then
+          if [[ "${{ needs.create-s3.outputs.s3_status }}" == "success" ]]; then
             echo "S3 bucket created successfully. Use the below command to check bucket status in AWS CLI:" > s3-status.txt
             echo "==================================================" >> s3-status.txt
             echo 'Command: BUCKETS=$(aws s3api list-buckets --query "Buckets[].Name" --output text 2>/dev/null); if [ -z "$BUCKETS" ]; then echo "No S3 buckets exist"; else echo "Existing S3 Buckets:"; echo "$BUCKETS"; fi' >> s3-status.txt
@@ -37,7 +51,7 @@ jobs:
           fi
 
       - name: Upload S3 Creation Status
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v4
         with:
           name: RESULT-S3-Creation-Status
           path: s3-status.txt
