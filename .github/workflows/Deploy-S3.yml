@@ -21,7 +21,7 @@ jobs:
       - name: Create S3 Bucket
         id: s3_creation
         run: |
-          BUCKET_NAME="my-2nd-trail-unique-bucket-$RANDOM"
+          BUCKET_NAME="my-2nd-trail-unique-bucket2-$RANDOM"
           echo "Creating S3 bucket: $BUCKET_NAME"
           if aws s3api create-bucket --bucket "$BUCKET_NAME" --region us-east-1; then
             echo "S3_BUCKET_NAME=$BUCKET_NAME" >> $GITHUB_ENV
@@ -44,8 +44,8 @@ jobs:
         run: |
           if [[ "${{ needs.create-s3.outputs.s3_status }}" == "success" ]]; then
             echo "S3 bucket created successfully. Use the below command to check bucket status in AWS CLI:" > s3-status.txt
-            echo "==================================================" >> s3-status.txt
-            echo 'Command: BUCKETS=$(aws s3api list-buckets --query "Buckets[].Name" --output text 2>/dev/null); if [ -z "$BUCKETS" ]; then echo "No S3 buckets exist"; else echo "Existing S3 Buckets:"; echo "$BUCKETS"; fi' >> s3-status.txt
+            echo "========================================================================================" >> s3-status.txt
+            echo 'Command: aws s3api list-buckets --query "Buckets[].{Name: Name}" --output table' >> s3-status.txt
           else
             echo "Failed to create S3 bucket" > s3-status.txt
           fi
