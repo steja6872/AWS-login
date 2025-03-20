@@ -1,28 +1,28 @@
-name: Deploy-S3-and-Artifact
-on: [push]
+#name: Deploy-S3-and-Artifact
+#on: [push]
 
-jobs:
-  create-s3:
-    runs-on: ubuntu-latest
-    outputs:
-      s3_status: ${{ steps.s3_creation.outputs.status }}  # Save status as output
-      bucket_name: ${{ steps.s3_creation.outputs.bucket }} # Save bucket name
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+#jobs:
+#  create-s3:
+    #runs-on: ubuntu-latest
+ #   outputs:
+      #s3_status: ${{ steps.s3_creation.outputs.status }}  # Save status as output
+   #   bucket_name: ${{ steps.s3_creation.outputs.bucket }} # Save bucket name
+   # steps:
+    #  - name: Checkout repository
+    #    uses: actions/checkout@v3
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1  # Change if needed
+    #  - name: Configure AWS credentials
+     #   uses: aws-actions/configure-aws-credentials@v2
+     #   with:
+      #    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #    aws-region: us-east-1  # Change if needed
 
-      - name: Create S3 Bucket
-        id: s3_creation
-        run: |
+    #  - name: Create S3 Bucket
+    #    id: s3_creation
+       # run: |
           BUCKET_NAME="my-2nd-trail-unique-bucket2-$RANDOM"
-          echo "Creating S3 bucket: $BUCKET_NAME"
+     #     echo "Creating S3 bucket: $BUCKET_NAME"
           if aws s3api create-bucket --bucket "$BUCKET_NAME" --region us-east-1; then
             echo "S3_BUCKET_NAME=$BUCKET_NAME" >> $GITHUB_ENV
             echo "status=success" >> $GITHUB_ENV
@@ -33,25 +33,25 @@ jobs:
             echo "status=failure" >> "$GITHUB_OUTPUT"
           fi
 
-  upload-artifact:
-    runs-on: ubuntu-latest
-    needs: create-s3  # Depends on create-s3 job
-    steps:
-      - name: Checkout repository
+ # upload-artifact:
+   # runs-on: ubuntu-latest
+   # needs: create-s3  # Depends on create-s3 job
+#    steps:
+    #  - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Create Artifact with S3 Status
-        run: |
+    #  - name: Create Artifact with S3 Status
+      #  run: |
           if [[ "${{ needs.create-s3.outputs.s3_status }}" == "success" ]]; then
             echo "S3 bucket created successfully. Use the below command to check bucket status in AWS CLI:" > s3-status.txt
             echo "========================================================================================" >> s3-status.txt
-            echo 'Command: aws s3api list-buckets --query "Buckets[].{Name: Name}" --output table' >> s3-status.txt
+      #      echo 'Command: aws s3api list-buckets --query "Buckets[].{Name: Name}" --output table' >> s3-status.txt
           else
             echo "Failed to create S3 bucket" > s3-status.txt
           fi
 
-      - name: Upload S3 Creation Status
-        uses: actions/upload-artifact@v4
-        with:
-          name: RESULT-S3-Creation-Status
-          path: s3-status.txt
+     # - name: Upload S3 Creation Status
+     #   uses: actions/upload-artifact@v4
+    #    with:
+       #   name: RESULT-S3-Creation-Status
+     #     path: s3-status.txt
