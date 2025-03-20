@@ -21,17 +21,17 @@
     #  - name: Create S3 Bucket
     #    id: s3_creation
        # run: |
-          BUCKET_NAME="my-2nd-trail-unique-bucket2-$RANDOM"
+      #    BUCKET_NAME="my-2nd-trail-unique-bucket2-$RANDOM"
      #     echo "Creating S3 bucket: $BUCKET_NAME"
           if aws s3api create-bucket --bucket "$BUCKET_NAME" --region us-east-1; then
-            echo "S3_BUCKET_NAME=$BUCKET_NAME" >> $GITHUB_ENV
-            echo "status=success" >> $GITHUB_ENV
-            echo "status=success" >> "$GITHUB_OUTPUT"
-            echo "bucket=$BUCKET_NAME" >> "$GITHUB_OUTPUT"
-          else
-            echo "status=failure" >> $GITHUB_ENV
-            echo "status=failure" >> "$GITHUB_OUTPUT"
-          fi
+         #   echo "S3_BUCKET_NAME=$BUCKET_NAME" >> $GITHUB_ENV
+          #  echo "status=success" >> $GITHUB_ENV
+          #  echo "status=success" >> "$GITHUB_OUTPUT"
+          #  echo "bucket=$BUCKET_NAME" >> "$GITHUB_OUTPUT"
+       #   else
+       #     echo "status=failure" >> $GITHUB_ENV
+       #     echo "status=failure" >> "$GITHUB_OUTPUT"
+       #   fi
 
  # upload-artifact:
    # runs-on: ubuntu-latest
