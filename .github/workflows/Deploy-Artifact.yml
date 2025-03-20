@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
       - name: Run a one-line script
         run: echo "The artifact YAML script has been deployed successfully" > sample-artifact.txt 
