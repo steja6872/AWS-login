@@ -9,7 +9,7 @@ jobs:
         run: echo "The artifact YAML script has been deployed successfully" > sample-artifact.txt 
 
       - name: Upload the result
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: Output-file 
           path: sample-artifact.txt
