@@ -19,12 +19,15 @@ jobs:
         id: s3_status
         run: |
           BUCKET_NAME="my-s3-bucket-$RANDOM"
+          BUCKET_NAME=$(echo "$BUCKET_NAME" | tr '[:upper:]' '[:lower:]')  # Ensure lowercase
+          
+          echo "Creating S3 bucket: $BUCKET_NAME"
           if aws s3api create-bucket --bucket "$BUCKET_NAME" --region us-east-1; then
-            echo "S3_BUCKET_CREATED=true" >> $GITHUB_ENV
             echo "S3 bucket created successfully: $BUCKET_NAME"
+            echo "status=success" >> $GITHUB_ENV
           else
-            echo "S3_BUCKET_CREATED=false" >> $GITHUB_ENV
             echo "S3 bucket creation failed"
+            echo "status=failure" >> $GITHUB_ENV
             exit 1  # Mark job as failed
           fi
 
@@ -33,21 +36,18 @@ jobs:
     needs: create-s3
     if: always()  # Ensure this job runs even if the previous job fails
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
       - name: Generate Artifact Message
         run: |
           if [[ "${{ needs.create-s3.result }}" == "success" ]]; then
-            echo "The S3 bucket has been deployed successfully." > RESULT.txt
+            echo "The S3 has been deployed successfully." > RESULT.txt
             echo "Use this command to check in AWS CLI:" >> RESULT.txt
-            echo 'aws s3api list-buckets --query "Buckets[].{Name: Name}" --output table' >> RESULT.txt
+            echo 'aws s3api list-buckets --query "Buckets[].{Name: Name}" --output table' >> result.txt
           else
-            echo "Failed to create S3 bucket." > RESULT.txt
-            echo "Please check the logs for more details." >> RESULT.txt
-
+            echo "Failed to create S3 bucket." > result.txt
+            echo "Please check the logs for more details." >> result.txt
+          
       - name: Upload the Result
         uses: actions/upload-artifact@v4.6.2
         with:
           name: S3-Creation-Status
-          path: RESULT.txt
+          path: result.txt
