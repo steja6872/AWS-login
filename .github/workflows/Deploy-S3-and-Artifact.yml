@@ -18,7 +18,7 @@ jobs:
       - name: Create S3 Bucket
         id: s3_status
         run: |
-          BUCKET_NAME="my-s3-bucket-$RANDOM" # The name should be lower-case
+          BUCKET_NAME="my-s3-bucket-$RANDOM" 
           if aws s3api create-bucket --bucket "$BUCKET_NAME" --region us-east-1; then
             echo "S3 bucket created successfully: $BUCKET_NAME"
           else
@@ -36,7 +36,7 @@ jobs:
           if [ "${{ needs.create-s3.result }}" == "success" ]; then
             echo "The S3 has been deployed successfully." > RESULT.txt
             echo "Use this command to check in AWS CLI:" >> RESULT.txt
-            echo 'aws s3api list-buckets --query "Buckets[].{Name:Name}" --output table' >> RESULT.txt
+            echo 'aws s3api list-buckets --query "Buckets[].{Name: Name}" --output table' >> RESULT.txt
           else
             echo "Failed to create S3 bucket." > RESULT.txt
             echo "Please check the logs for more details." >> RESULT.txt
