@@ -18,10 +18,12 @@ jobs:
       - name: Create S3 Bucket
         id: s3_status
         run: |
-          BUCKET_NAME="my-s3-bucket-$RANDOM" 
+          BUCKET_NAME="my-s3-bucket-$RANDOM"
           if aws s3api create-bucket --bucket "$BUCKET_NAME" --region us-east-1; then
+            echo "S3_BUCKET_CREATED=true" >> $GITHUB_ENV
             echo "S3 bucket created successfully: $BUCKET_NAME"
           else
+            echo "S3_BUCKET_CREATED=false" >> $GITHUB_ENV
             echo "S3 bucket creation failed"
             exit 1  # Mark job as failed
           fi
@@ -31,10 +33,13 @@ jobs:
     needs: create-s3
     if: always()  # Ensure this job runs even if the previous job fails
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
       - name: Generate Artifact Message
         run: |
-          if [ "${{ needs.create-s3.result }}" == "success" ]; then
-            echo "The S3 has been deployed successfully." > RESULT.txt
+          if [[ "${{ needs.create-s3.result }}" == "success" ]]; then
+            echo "The S3 bucket has been deployed successfully." > RESULT.txt
             echo "Use this command to check in AWS CLI:" >> RESULT.txt
             echo 'aws s3api list-buckets --query "Buckets[].{Name: Name}" --output table' >> RESULT.txt
           else
