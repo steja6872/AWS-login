@@ -18,7 +18,7 @@ jobs:
       - name: Create S3 Bucket
         id: s3_status
         run: |
-          BUCKET_NAME="My-S3-Bucket-$RANDOM"
+          BUCKET_NAME="my-s3-bucket-$RANDOM" # The name should be lower-case
           if aws s3api create-bucket --bucket "$BUCKET_NAME" --region us-east-1; then
             echo "S3 bucket created successfully: $BUCKET_NAME"
           else
