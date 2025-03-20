@@ -17,16 +17,7 @@ jobs:
 
       - name: Create S3 Bucket
         id: s3_creation
-        run: |
-          BUCKET_NAME="my-unique-bucket-$RANDOM"
-          echo "Creating S3 bucket: $BUCKET_NAME"
-          if aws s3api create-bucket --bucket "$BUCKET_NAME" --region us-east-1 \
-            --create-bucket-configuration LocationConstraint=us-east-1; then
-            echo "S3_BUCKET_NAME=$BUCKET_NAME" >> $GITHUB_ENV
-            echo "status=success" >> $GITHUB_ENV
-          else
-            echo "status=failure" >> $GITHUB_ENV
-          fi
+        run: BUCKET_NAME="my-unique-4bucket-$RANDOM" && echo "Creating S3 bucket:$BUCKET_NAME" && if aws s3api create-bucket --bucket "$BUCKET_NAME" --region us-east-1; then echo "S3_BUCKET_NAME=$BUCKET_NAME" >> $GITHUB_ENV && echo "status=success" >> $GITHUB_ENV;  else  echo "status=failure" >> $GITHUB_ENV;  fi
 
   upload-artifact:
     runs-on: ubuntu-latest
