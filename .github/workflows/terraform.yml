@@ -1,0 +1,42 @@
+name: Deploy-EC2-Instance
+on: [push]
+
+jobs:
+  deploy-ec2-and-setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1  # Change region as needed
+
+      - name: Launch EC2 Instance
+        id: launch-instance
+        run: |
+          INSTANCE_ID=$(aws ec2 run-instances --image-id ami-0f96c63e39f9144bc --count 1 --instance-type t2.micro --key-name MyKeyPair --security-groups default --region us-east-1 --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=My3rdInstance}]' --query "Instances[0].InstanceId" --output text)
+          echo "INSTANCE_ID=$INSTANCE_ID" >> $GITHUB_ENV
+
+      - name: Allow SSH Access in Security Group
+        run: |
+          SECURITY_GROUP_ID=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query "Reservations[0].Instances[0].SecurityGroups[0].GroupId" --output text)
+          if ! aws ec2 describe-security-groups --group-ids $SECURITY_GROUP_ID --query "SecurityGroups[0].IpPermissions[?ToPort==\`22\` && IpRanges[?CidrIp=='0.0.0.0/0']]" --output text | grep -q "22"; then
+            aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 22 --cidr 0.0.0.0/0
+          else
+            echo "SSH Rule already exists. Skipping..."
+          fi
+
+      - name: Install Terraform on EC2
+        run: |
+          PUBLIC_IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query "Reservations[0].Instances[0].PublicIpAddress" --output text)
+          echo "Waiting for EC2 instance to be ready..."
+          sleep 60  # Wait for instance to boot up
+          ssh -o StrictHostKeyChecking=no -i MyKeyPair.pem ec2-user@$PUBLIC_IP << 'EOF'
+            sudo su
+            sudo yum update -y
+            sudo yum install -y yum-utils shadow-utils
+            sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+            sudo yum -y install terraform
+            terraform -v
+          EOF
